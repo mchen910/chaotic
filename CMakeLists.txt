@@ -3,14 +3,12 @@ set (CMAKE_CXX_STANDARD 11)
 
 project(chaotic LANGUAGES CXX)
 
-add_subdirectory(src)
-
 option(CHAOTIC_BUILD_SAMPLES "Build the sample program" ON)
 
 if (CHAOTIC_BUILD_SAMPLES)
 
-	add_subdirectory(extern/glad)
-	add_subdirectory(extern/glfw)
+	# add_subdirectory(extern/glad)
+	# add_subdirectory(extern/glfw)
 	add_subdirectory(samples)
 
 	# default startup project for Visual Studio

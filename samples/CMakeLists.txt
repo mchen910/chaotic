@@ -1,12 +1,15 @@
-project(samples LANGUAGES CXX)
+project(chaotic LANGUAGES CXX)
 
-set (SAMPLE_SOURCE_FILES
+set (CHAOTIC_SOURCE_FILES
 	main.cpp)
 
-# set (SAMPLE_HEADER_FILES
-# 	imgui_impl_glfw.h
-# 	imgui_impl_opengl2.h)
+set (CHAOTIC_HEADER_FILES
+	../include/diffeq/diffeq.h
+)
 
-add_executable(samples ${SAMPLE_SOURCE_FILES} ${SAMPLE_HEADER_FILES})
-target_include_directories(samples PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(samples PUBLIC glfw glad ${OPENGL_LIBRARIES})
+add_executable(samples ${CHAOTIC_SOURCE_FILES} ${CHAOTIC_HEADER_FILES})
+target_include_directories(samples PRIVATE ../include/diffeq/)
+target_link_libraries(samples PUBLIC chaotic ${OPENGL_LIBRARIES})
+
+# target_link_libraries(samples PUBLIC chaotic glfw glad ${OPENGL_LIBRARIES})
+

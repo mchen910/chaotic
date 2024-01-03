@@ -1,82 +1,42 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+// #include <glad/glad.h>
+// #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include "solver.h"
+#include <cmath>
+#include "diffeq.h"
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+using namespace DES;
+
 
 int main() {
-	DES::System<float, float> system();
-	// glfw: initialize and configure
-	// ------------------------------
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+	std::function<float(std::vector<float>)> func1 = [](std::vector<float> f) {
+		float t = f.at(0);
+		float u1 = f.at(1);
+		float u2 = f.at(2);
 
-	// glfw window creation
-	// --------------------
-	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-	if (window == NULL) {
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+		return -4 * u1 - 2 * u2 + cos(t) + 4 * sin(t);
+	};
 
-	// glad: load all OpenGL function pointers
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
+	std::function<float(std::vector<float>)> func2 = [](std::vector<float> f) {
+		float t = f.at(0);
+		float u1 = f.at(1);
+		float u2 = f.at(2);
 
-	// render loop
-	// -----------
-	while (!glfwWindowShouldClose(window)) {
-		// input
-		// -----
-		processInput(window);
+		return 3 * u1 + u2 - 3 * sin(t);
+	};
 
-		// render
-		// ------
-		glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+	iv_t iv {0.0f, 0.0f, -1.0f};
+	timeBound_t tb {0.0f, 0.2f};
 
-		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-		// -------------------------------------------------------------------------------
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+	function_t<float, float> f1(func1);
+	function_t<float, float> f2(func2);
 
-	// glfw: terminate, clearing all previously allocated GLFW resources.
-	// ------------------------------------------------------------------
-	glfwTerminate();
+	ODESystem<float, float> ode (iv, {f1, f2}, tb, 0.1);
+
+	auto data = solve<float, float>(ode, 3);
+
+
 	return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-	// make sure the viewport matches the new window dimensions; note that width and
-	// height will be significantly larger than specified on retina displays.
-	glViewport(0, 0, width, height);
 }

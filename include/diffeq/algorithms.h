@@ -1,19 +1,16 @@
-#include "ODE.h"
+#ifndef ALGORITHMS_H
+#define ALGORITHMS_H
+
+
+#include "dataframe.h"
+#include "ode.h"
 
 
 namespace DES
 {
 
-
 template <typename T, typename V>
-DataFrame<T> Algorithms<T, V>::_euler(ODESystem<T, V>& ode) 
-{
-    
-}
-
-
-template <typename T, typename V>
-DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode) 
+DataFrame<T> _RK4(ODESystem<T, V> const& ode) 
 {
     // if (ode._functions.size() == 1) 
     //     return _RK4(ODE<T, V>(ode.))
@@ -36,7 +33,7 @@ DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode)
 
         // k1
         for (int j = 0; j < m; j++) 
-            k_1j[j] = ode.eval(inputs);
+            k_1j[j] = ode._eval(inputs);
 
         // modify eval inputs
         for (int i = 0; i < inputs.size(); i++)
@@ -44,7 +41,7 @@ DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode)
 
         // k2
         for (int j = 0; j < m; j++) 
-            k_2j[j] = ode.eval(inputs);
+            k_2j[j] = ode._eval(inputs);
 
         // modify again
         for (int i = 0; i < inputs.size(); i++)
@@ -52,7 +49,7 @@ DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode)
 
         // k3
         for (int j = 0; j < m; j++) 
-            k_3j[j] = ode.eval(inputs);
+            k_3j[j] = ode._eval(inputs);
 
         // modify for the last time
         for (int i = 0; i < inputs.size(); i++)
@@ -60,7 +57,7 @@ DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode)
         
         // k4
         for (int j = 0; j < m; j++) 
-            k_4j[j] = ode.eval(inputs);
+            k_4j[j] = ode._eval(inputs);
 
         
         std::vector<T> result = res.getRow(row);
@@ -75,4 +72,9 @@ DataFrame<T> Algorithms<T, V>::_RK4(ODESystem<T, V>& ode)
 }
 
 
-}
+
+} // namespace DES
+
+
+
+#endif

@@ -7,17 +7,12 @@
 
 #include "dataframe.h"
 
-
-#define ALGORITHIM_EULER    0x001
-#define ALGORITHM_RK4       0x002
-#define ALGORITHM_RK45      0x003
-
+#include <iostream>
 
 
 namespace DES
 {
 
-typedef unsigned int                uint_t;
 typedef unsigned int                algorithm_t;
 typedef std::pair<float, float>     timeBound_t;
 typedef std::vector<float>          iv_t;
@@ -25,7 +20,7 @@ typedef std::vector<float>          iv_t;
 
 
 /**
- * @brief std::function wrapper.
+ * @brief std::function wrapper. Enforces a vector of inputs.
  * 
  * @tparam T Output type of function
  * @tparam V Input type of function - function_t is structured such that all 
@@ -35,11 +30,14 @@ template <typename T, typename V>
 struct function_t
 {
     std::function<T(std::vector<V>)> _func;
-    std::vector<V> _inputs;
+
+    function_t(std::function<T(std::vector<V>)> func) {
+        _func = func;
+    }
 
     T operator()(std::vector<V> args) 
     {
-        return _func(_inputs);
+        return _func(args);
     }
 };
 
@@ -83,16 +81,14 @@ public:
 
 
 template <typename T, typename V>
-class System
+class DiffEqSystem
 {
-
-protected:
-
 
 public:
     std::vector<function_t<T, V>> _functions;
     std::vector<float> _iValues;
-    System(iv_t& iValues, std::initializer_list<function_t<T, V>> funcs) 
+
+    DiffEqSystem(iv_t& iValues, std::initializer_list<function_t<T, V>> funcs) 
         : _functions(funcs)
     {
         _iValues = iValues;
@@ -105,22 +101,7 @@ public:
 };
 
 
-/**
- * @brief Solve a differential equation.
- * 
- * @tparam T 
- * @tparam V 
- * @param eq 
- * @param alg 
- * @return DataFrame<T> 
- */
-template <typename T, typename V>
-DataFrame<T> solve(DiffEq<T, V>& eq, algorithm_t alg);
 
-
-
-} // namespace solver
-
-
+} // namespace DES
 
 #endif
