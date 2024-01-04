@@ -2,6 +2,7 @@
 #define DATAFRAME_H
 
 #include <cstddef>
+#include <iostream>
 #include <tuple>
 #include <vector>
 
@@ -14,17 +15,34 @@ class DataFrame
 {
 
 private:
-    size_t rows, cols;
+    size_t _rows;
+    size_t _cols;
     std::vector<std::vector<T>> entries;
 
 public:
-    DataFrame<T>(size_t rows, size_t cols);
-    std::vector<T> getRow(size_t row);
-    std::vector<T> getCol(size_t col);
+    DataFrame<T>                (size_t rows, size_t cols);
 
-    void addRow(std::vector<T>& row);
+    std::vector<T>  getRow      (size_t row);
+    std::vector<T>  getCol      (size_t col);
+    std::vector<T>  operator[]  (size_t row);
 
-    std::vector<T> operator[] (size_t row);
+    void            addRow      (std::vector<T>& row);
+    size_t          getNumRows  ();
+    size_t          getNumCols  ();
+
+
+    friend std::ostream& operator<<(std::ostream& os, DataFrame& df)
+    {
+        // inline for template reasons
+        for (size_t i = 0; i < df.getNumRows(); i++) {
+            std::vector<T> row = df.getRow(i);
+            for (size_t j = 0; j < df.getNumCols(); j++) {
+                os << row.at(j) << '\t';
+            }
+            os << '\n';
+        }
+        return os;
+    }
     
 };
 
@@ -33,8 +51,8 @@ public:
 template <typename T>
 DataFrame<T>::DataFrame(size_t rows, size_t cols)
 {
-    this->rows = rows;
-    this->cols = cols;
+    this->_rows = rows;
+    this->_cols = cols;
 
     this->entries = std::vector<std::vector<T>>(rows);
     for (int i = 0; i < rows; i++) entries[i] = std::vector<T>(cols, 0);
@@ -44,20 +62,27 @@ DataFrame<T>::DataFrame(size_t rows, size_t cols)
 template <typename T>
 std::vector<T> DataFrame<T>::getRow(size_t row)
 {
-    if (row >= rows)
+    if (row >= _rows)
         throw std::out_of_range("Row is out of range");
     
-    return std::vector<T>(entries.at(row));
+    return entries.at(row);
 }
 
 
-/**
- * @brief Get a copy of a particular row in a DataFrame.
- * 
- * @tparam T 
- * @param row 
- * @return std::vector<T> 
- */
+template <typename T>
+std::vector<T> DataFrame<T>::getCol(size_t col) 
+{
+    if (col >= _cols) 
+        throw std::out_of_range("Column is out of range");
+
+    std::vector<T> column;
+    for (int i = 0; i < _rows; i++)
+        column.push_back(entries.at(i).at(col));
+    
+    return column;
+}
+
+
 template <typename T>
 std::vector<T> DataFrame<T>::operator[] (size_t row) 
 {
@@ -66,27 +91,27 @@ std::vector<T> DataFrame<T>::operator[] (size_t row)
 
 
 template <typename T>
-std::vector<T> DataFrame<T>::getCol(size_t col)
+void DataFrame<T>::addRow(std::vector<T>& row)
 {
-    if (col >= cols) 
-        throw std::out_of_range("Column is out of range");
+    if (row.size() != _cols)
+        throw std::runtime_error("Row is too big");
 
-    std::vector<T> column;
-    for (int i = 0; i < rows; i++)
-        column.push_back(entries.at(i).at(col));
-    
-    return column;
+    _rows++;
+    entries.push_back(row);
 }
 
 
 template <typename T>
-void DataFrame<T>::addRow(std::vector<T>& row)
+size_t DataFrame<T>::getNumRows() 
 {
-    if (row.size() != cols)
-        throw std::runtime_error("Row is too big");
+    return _rows;
+}
 
-    rows++;
-    entries.push_back(row);
+
+template <typename T>
+size_t DataFrame<T>::getNumCols() 
+{
+    return _cols;
 }
 
 

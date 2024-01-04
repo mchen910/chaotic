@@ -14,28 +14,54 @@ namespace DES
 {
 
 typedef unsigned int                algorithm_t;
-typedef std::pair<float, float>     timeBound_t;
-typedef std::vector<float>          iv_t;
+
+
+/**
+ * @brief Time bound type, encapsulating information about when to start and 
+ * stop the solver. The bounds [a, b) are inclusive at the start and exclusive 
+ * at the end.
+ * 
+ * @tparam T Type of time bound, which can be used to specify precision.
+ */
+template <typename T>
+struct timeBound_t
+{
+    T first, second;
+
+    timeBound_t(T start, T end) : first(start), second(end) { }
+    timeBound_t(std::initializer_list<T> bounds) : first(bounds.begin()[0]), second(bounds.begin()[1]) { }
+};
+
+
+template <typename T>
+struct iv_t
+{
+    std::vector<T> vec;
+
+    iv_t(std::vector<T> values)             : vec(values) { }
+    iv_t(std::initializer_list<T> values)   : vec(values) { }
+};
+
 
 
 
 /**
  * @brief std::function wrapper. Enforces a vector of inputs.
  * 
- * @tparam T Output type of function
- * @tparam V Input type of function - function_t is structured such that all 
- * inputs to the function must be of one type.
+ * @tparam T Input/output type of function - function_t is structured such that all 
+ * inputs to the function must be of one type, and the output must be of the same 
+ * type in order to keep things consistent.
  */
-template <typename T, typename V>
+template <typename T>
 struct function_t
 {
-    std::function<T(std::vector<V>)> _func;
+    std::function<T(std::vector<T>)> _func;
 
-    function_t(std::function<T(std::vector<V>)> func) {
+    function_t(std::function<T(std::vector<T>)> func) {
         _func = func;
     }
 
-    T operator()(std::vector<V> args) 
+    T operator()(std::vector<T> args) 
     {
         return _func(args);
     }
@@ -48,18 +74,17 @@ struct function_t
  * classes both inherit from this class. The most general form of a 
  * differential equation is dy/dt = f(t, ...).
  * 
- * @tparam T Type of output of the function f.
- * @tparam V Type of inputs to the function f.
+ * @tparam T Type of inputs/output to the differential equation.
  */
-template <typename T, typename V>   
+template <typename T>
 class DiffEq
 {
 
 protected:
-    function_t<T, V> func;
-    timeBound_t bounds;
-    double initialCondition;
-    double timeStep;
+    function_t<T> _func;
+    timeBound_t<T> _bounds;
+    T _initialCondition;
+    T _timeStep;
 
 public:
     /**
@@ -70,33 +95,28 @@ public:
      * @param initialCondition 
      * @param timeStep 
      */
-    DiffEq(function_t<T, V>& func, timeBound_t& bounds, double initialCondition, double timeStep) {
-        this->func = func;
-        this->initialCondition = initialCondition;
-        this->bounds = bounds;
-        this->timeStep = timeStep;
+    DiffEq(function_t<T>& func, timeBound_t<T>& bounds, T initialCondition, T timeStep) {
+        _func = func;
+        _initialCondition = initialCondition;
+        _bounds = bounds;
+        _timeStep = timeStep;
     }
 
 };
 
 
-template <typename T, typename V>
+template <typename T>
 class DiffEqSystem
 {
 
 public:
-    std::vector<function_t<T, V>> _functions;
-    std::vector<float> _iValues;
+    std::vector<function_t<T>> _functions;
+    iv_t<T> _iValues;
 
-    DiffEqSystem(iv_t& iValues, std::initializer_list<function_t<T, V>> funcs) 
+    DiffEqSystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs) 
         : _functions(funcs)
-    {
-        _iValues = iValues;
-    } 
-
-
-    std::vector<T> eval(std::vector<V>& inputs); 
-    std::vector<function_t<T, V>> getFunctions();
+        , _iValues(iValues)
+    { } 
 
 };
 
