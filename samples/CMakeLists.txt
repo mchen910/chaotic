@@ -1,15 +1,13 @@
-project(chaotic LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.20)
 
-set (CHAOTIC_SOURCE_FILES
-	main.cpp)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
-set (CHAOTIC_HEADER_FILES
-	../include/diffeq/diffeq.h
-)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_executable(samples ${CHAOTIC_SOURCE_FILES} ${CHAOTIC_HEADER_FILES})
-target_include_directories(samples PRIVATE ../include/diffeq/)
-target_link_libraries(samples PUBLIC chaotic ${OPENGL_LIBRARIES})
+include_directories(${CMAKE_HOME_DIRECTORY}/include/)
+add_executable(main main.cpp ${CMAKE_HOME_DIRECTORY}/include/diffeq.h)
+target_compile_features(main PRIVATE cxx_std_17)
 
-# target_link_libraries(samples PUBLIC chaotic glfw glad ${OPENGL_LIBRARIES})
-
+target_link_libraries(main PRIVATE glad glfw)
