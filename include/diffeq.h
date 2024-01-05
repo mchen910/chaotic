@@ -13,9 +13,18 @@
 #ifndef DIFFEQ_H
 #define DIFFEQ_H
 
-#define ALGORITHM_EULER    0x001
+
+#if !defined(DIFFEQ_FLOAT_PRECISION) &&     \
+    !defined(DIFFEQ_DOUBLE_PRECISION) &&    \
+    !defined(DIFFEQ_LONG_DOUBLE_PRECISION)  
+#error Must specify precision
+#endif
+
+
+#define ALGORITHM_EULER     0x001
 #define ALGORITHM_RK4       0x002
 #define ALGORITHM_RKF45     0x003
+
 
 #include "diffeq/dataframe.h"
 #include "diffeq/ode.h"
