@@ -13,13 +13,13 @@
 #ifndef DIFFEQ_H
 #define DIFFEQ_H
 
-#define ALGORITHIM_EULER    0x001
+#define ALGORITHM_EULER    0x001
 #define ALGORITHM_RK4       0x002
-#define ALGORITHM_RK45      0x003
-
+#define ALGORITHM_RKF45     0x003
 
 #include "diffeq/dataframe.h"
 #include "diffeq/ode.h"
-#include "diffeq/algorithms.h"
+#include "diffeq/algorithms/rk.h"
+
 
 #endif

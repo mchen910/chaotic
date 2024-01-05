@@ -63,11 +63,12 @@ public:
 
 // Forward declare the algorithms
 
-template <typename T>   DataFrame<T>  _EULER  (ODESystem<T>& ode);
-template <typename T>   DataFrame<T>  _RK4    (ODESystem<T>& ode);
-template <typename T>   DataFrame<T>  _RK45   (ODESystem<T>& ode);
-template <typename T>   DataFrame<T>  _TSIT5  (ODESystem<T>& ode);
+template <typename T>   DataFrame<T>  _EULER    (ODESystem<T>& ode);
+template <typename T>   DataFrame<T>  _RK4      (ODESystem<T>& ode);
+template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode);
+template <typename T>   DataFrame<T>  _TSIT5    (ODESystem<T>& ode);
 
+template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode, T maxError);
 
 
 /**
@@ -146,7 +147,7 @@ DataFrame<T> solve(ODE<T>& eq, algorithm_t alg)
     std::cout << alg << std::endl;
     switch (alg)
     {
-    case ALGORITHIM_EULER:
+    case ALGORITHM_EULER:
         return _EULER(eq);
         break;
     
@@ -164,8 +165,9 @@ DataFrame<T> solve(ODESystem<T>& eq, algorithm_t alg)
 {
     switch (alg)
     {
-        case ALGORITHIM_EULER:  return _EULER(eq);
+        case ALGORITHM_EULER:   return _EULER(eq);
         case ALGORITHM_RK4:     return _RK4(eq);
+        case ALGORITHM_RKF45:   return _RKF45(eq);
         
         default:                throw std::runtime_error("Invalid algorithm");
     }
@@ -174,5 +176,6 @@ DataFrame<T> solve(ODESystem<T>& eq, algorithm_t alg)
 
 
 }
+
 
 #endif
