@@ -7,8 +7,6 @@
 
 #include "dataframe.h"
 
-#include <iostream>
-
 
 namespace DES
 {
@@ -83,7 +81,7 @@ class DiffEq
 protected:
     function_t<T> _func;
     timeBound_t<T> _bounds;
-    T _initialCondition;
+    iv_t<T> _iCondition;
     T _timeStep;
 
 public:
@@ -95,12 +93,12 @@ public:
      * @param initialCondition 
      * @param timeStep 
      */
-    DiffEq(function_t<T>& func, timeBound_t<T>& bounds, T initialCondition, T timeStep) {
-        _func = func;
-        _initialCondition = initialCondition;
-        _bounds = bounds;
-        _timeStep = timeStep;
-    }
+    DiffEq(function_t<T>& func, timeBound_t<T>& bounds, iv_t<T>& initialCondition, T timeStep)
+        : _func(func)   // must initialize here to avoid explicit initialization errors
+        , _iCondition(initialCondition)
+        , _bounds(bounds)
+        , _timeStep(timeStep)
+    { }
 
 };
 
@@ -109,19 +107,23 @@ template <typename T>
 class DiffEqSystem
 {
 
-public:
+protected:
     std::vector<function_t<T>> _functions;
+    timeBound_t<T> _timeBound;
     iv_t<T> _iValues;
+    T _timeStep;
 
-    DiffEqSystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs) 
+public:
+    DiffEqSystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs, timeBound_t<T>& bounds, T timeStep) 
         : _functions(funcs)
         , _iValues(iValues)
+        , _timeBound(bounds)
+        , _timeStep(timeStep)
     { } 
 
 };
 
-
-
 } // namespace DES
+
 
 #endif
