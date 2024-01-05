@@ -1,8 +1,9 @@
-#ifndef DATAFRAME_H
-#define DATAFRAME_H
+#ifndef DIFFEQ_DATAFRAME_H
+#define DIFFEQ_DATAFRAME_H
 
 #include <cstddef>
 #include <iostream>
+#include <iomanip>
 #include <tuple>
 #include <vector>
 
@@ -33,6 +34,8 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, DataFrame& df)
     {
+
+        os << std::setprecision(std::numeric_limits<T>::digits10+1);
         // inline for template reasons
         for (size_t i = 0; i < df.getNumRows(); i++) {
             std::vector<T> row = df.getRow(i);

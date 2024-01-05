@@ -1,5 +1,5 @@
-#ifndef SOLVER_H
-#define SOLVER_H
+#ifndef DIFFEQ_SOLVER_H
+#define DIFFEQ_SOLVER_H
 
 #include <initializer_list>
 #include <functional>

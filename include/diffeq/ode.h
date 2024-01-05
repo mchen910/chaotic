@@ -1,5 +1,5 @@
-#ifndef ODE_SOLVER_H
-#define ODE_SOLVER_H
+#ifndef DIFFEQ_ODE_H
+#define DIFFEQ_ODE_H
 
 #include <functional>
 #include <vector>
