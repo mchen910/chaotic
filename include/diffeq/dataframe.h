@@ -27,7 +27,7 @@ public:
     std::vector<T>  getCol      (size_t col);
     std::vector<T>  operator[]  (size_t row);
 
-    void            addRow      (std::vector<T>& row);
+    void            addRow      (std::vector<T> row);
     size_t          getNumRows  ();
     size_t          getNumCols  ();
 
@@ -94,7 +94,7 @@ std::vector<T> DataFrame<T>::operator[] (size_t row)
 
 
 template <typename T>
-void DataFrame<T>::addRow(std::vector<T>& row)
+void DataFrame<T>::addRow(std::vector<T> row)
 {
     if (row.size() != _cols)
         throw std::runtime_error("Row is too big");
