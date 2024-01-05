@@ -2,11 +2,10 @@
 #define DIFFEQ_ALGORITHMS_RK_H
 
 #include <cmath>
-#include <type_traits>
 
 #include "../ode.h"
 
-#include <typeinfo>
+
 namespace DES 
 {
 
@@ -29,6 +28,30 @@ namespace ButcherTableau
     #define TAB_NULL    0.0
     #define TAB_NULLF   0.0f
     #define TAB_NULLL   0.0l
+
+
+
+    const double EULER_TAB[2][2] 
+    {
+        {        0.0,   0.0   },
+        {   TAB_NULL,   1.0   }
+    };
+
+
+    const float EULER_TABF[2][2] 
+    {
+        {        0.0f,   0.0f   },
+        {   TAB_NULLF,   1.0f   }
+    };
+
+
+    const long double EULER_TABL[2][2]
+    {
+        {        0.0l,   0.0l   },
+        {   TAB_NULLL,   1.0l   }
+    };
+
+
 
     const double RK4_TAB[5][5] 
     {
@@ -131,7 +154,7 @@ namespace ButcherTableau
 };
 
 
-#define  DEFAULT_ERROR  0.001
+#define  DEFAULT_ERROR          0.01
 #define  _LOOP_TO_M(i, n)       for (size_t i = n; i <= m; i++)
 
 
@@ -139,7 +162,54 @@ namespace ButcherTableau
 template <typename T>
 DataFrame<T> _EULER(ODESystem<T> & ode) 
 {
-    return DataFrame<T>(1, 2);
+   timeBound_t<T> tBound = ode.getTimeBound();
+
+    size_t m = ode.getNumEquations();
+    size_t row = 0;
+
+    T h = ode.getTimeStep();
+    T t = tBound.first;
+
+    DataFrame<T> res(0, m + 1);
+    res.addRow(ode._iValues.vec);
+
+
+#if defined(DIFFEQ_FLOAT_PRECISION)
+    #define  _EULER_TIME(a, b)        EULER_TABF[b][0] - EULER_TABF[a][0]
+    #define  _EULER_UNIT(a, b)        EULER_TABF[a][b] * k_##b##j[i-1]
+#elif defined(DIFFEQ_DOUBLE_PRECISION)
+    #define  _EULER_TIME(a, b)        EULER_TAB[b][0]  - EULER_TAB[a][0]
+    #define  _EULER_UNIT(a, b)        EULER_TAB[a][b]  * k_##b##j[i-1] 
+#elif defined(DIFFEQ_LONG_DOUBLE_PRECISION)
+    #define  _EULER_TIME(a, b)        EULER_TABL[b][0] - EULER_TABL[a][0]
+    #define  _EULER_UNIT(a, b)        EULER_TABL[a][b] * k_##b##j[i-1]
+#else 
+    #define  _EULER_TIME(a, b)        (T)(EULER_TAB[b][0]) - (T)(EULER_TAB[b][0])
+    #define  _EULER_UNIT(a, b)        (T)(EULER_TAB[a][b] * k_##b##j[i-1])
+#endif
+
+    using namespace ButcherTableau;
+    do
+    {
+        std::vector<T> k_1j, k_2j, k_3j, k_4j;
+        std::vector<T> inputs(res.getRow(row));
+
+        k_1j = ode._eval(inputs);
+        
+        std::vector<T> result(res.getRow(row));
+        result[0] = t + h;
+
+        _LOOP_TO_M(i, 1)
+            result[i] += h * (_EULER_UNIT(1, 1));
+
+        res.addRow(result);
+        
+        row++;
+        t += h;
+        
+    } while (t < tBound.second);
+
+    return res;
 }
 
 
@@ -169,7 +239,7 @@ DataFrame<T> _RK4(ODESystem<T>& ode)
     #define  _RK4_TIME(a, b)        RK4_TABL[b][0] - RK4_TABL[a][0]
     #define  _RK4_UNIT(a, b)        RK4_TABL[a][b] * k_##b##j[i-1]
 #else 
-    #define  _RK4_TIME(a, b)        (T)(RK4_TABL[b][0]) - (T)(RK4_TABL[b][0])
+    #define  _RK4_TIME(a, b)        (T)(RK4_TAB[b][0]) - (T)(RK4_TAB[b][0])
     #define  _RK4_UNIT(a, b)        (T)(RK4_TAB[a][b] * k_##b##j[i-1])
 #endif
 
@@ -211,8 +281,6 @@ DataFrame<T> _RK4(ODESystem<T>& ode)
                 + _RK4_UNIT(4, 4)
             );
 
-        for (int i = 0; i < result.size(); i++) std::cout << std::fixed <<  result[i] << ", ";
-        std::cout << std::endl;
         res.addRow(result);
         
         row++;
@@ -243,17 +311,26 @@ DataFrame<T> _RKF45(ODESystem<T>& ode, T maxError)
 #if defined(DIFFEQ_FLOAT_PRECISION)
     #define  _RKF45_TIME(a, b)        RKF45_TABF[b][0] - RKF45_TABF[a][0]
     #define  _RKF45_UNIT(a, b)        RKF45_TABF[a][b] * k_##b##j[i-1]
+    #define  _RKF45_SQRT(a)           sqrtf(a)
+    #define  _RKF45_POW(a, b)         powf(a, b)
 #elif defined(DIFFEQ_DOUBLE_PRECISION)
     #define  _RKF45_TIME(a, b)        RKF45_TAB[b][0]  - RKF45_TAB[a][0]
     #define  _RKF45_UNIT(a, b)        RKF45_TAB[a][b]  * k_##b##j[i-1] 
+    #define  _RKF45_SQRT(a)           sqrt(a)
+    #define  _RKF45_POW(a, b)         pow(a, b)
 #elif defined(DIFFEQ_LONG_DOUBLE_PRECISION)
     #define  _RKF45_TIME(a, b)        RKF45_TABL[b][0] - RKF45_TABL[a][0]
     #define  _RKF45_UNIT(a, b)        RKF45_TABL[a][b] * k_##b##j[i-1]
+    #define  _RKF45_SQRT(a)           sqrtl(a)
+    #define  _RKF45_POW(a, b)         powl(a, b)
 #else 
-    #define  _RKF45_TIME(a, b)        (T)(RKF45_TABL[b][0]) - (T)(RKF45_TABL[b][0])
+    #define  _RKF45_TIME(a, b)        (T)(RKF45_TAB[b][0]) - (T)(RKF45_TAB[b][0])
     #define  _RKF45_UNIT(a, b)        (T)(RKF45_TAB[a][b] * k_##b##j[i-1])
+    #define  _RKF45_SQRT(a)           (T)sqrt(a)
+    #define  _RKF45_POW(a, b)         (T)pow(a, b)
 #endif
 
+    std::cout << "here" << std::endl;
 
     using namespace ButcherTableau;
     do
@@ -264,33 +341,33 @@ DataFrame<T> _RKF45(ODESystem<T>& ode, T maxError)
         k_1j = ode._eval(inputs);
 
         _LOOP_TO_M(i, 0)
-            inputs[i] += h * (i == 0 ? (T)RKF45_TAB[1][0] : _RKF45_UNIT(1, 1));
+            inputs[i] += h * (i == 0 ? _RKF45_TIME(0, 1) : _RKF45_UNIT(1, 1));
              
         k_2j = ode._eval(inputs);
 
         _LOOP_TO_M(i, 0)
-            inputs[i] += h * (i == 0 ? (T)(RKF45_TAB[2][0] - RKF45_TAB[1][0]) : 
+            inputs[i] += h * (i == 0 ? _RKF45_TIME(1, 2) : 
                 ( _RKF45_UNIT(2, 1) + _RKF45_UNIT(2, 2) 
                 - _RKF45_UNIT(1, 1)));
         
         k_3j = ode._eval(inputs);
 
         _LOOP_TO_M(i, 0)
-            inputs[i] += h * (i == 0 ? (T)(RKF45_TAB[3][0] - RKF45_TAB[2][0]) :
+            inputs[i] += h * (i == 0 ? _RKF45_TIME(2, 3) :
                 ( _RKF45_UNIT(3, 1) + _RKF45_UNIT(3, 2) + _RKF45_UNIT(3, 3)
                 - _RKF45_UNIT(2, 1) - _RKF45_UNIT(2, 2)));
 
         k_4j = ode._eval(inputs);
 
         _LOOP_TO_M(i, 0)
-            inputs[i] += h * (i == 0 ? (T)(RKF45_TAB[4][0] - RKF45_TAB[3][0]) : 
+            inputs[i] += h * (i == 0 ? _RKF45_TIME(3, 4) : 
                 ( _RKF45_UNIT(4, 1) + _RKF45_UNIT(4, 2) + _RKF45_UNIT(4, 3) + _RKF45_UNIT(4, 4)
                 - _RKF45_UNIT(3, 1) - _RKF45_UNIT(3, 2) - _RKF45_UNIT(3, 3)));
 
         k_5j = ode._eval(inputs);
 
         _LOOP_TO_M(i, 0)
-            inputs[i] += h * (i == 0 ? (T)(RKF45_TAB[5][0] - RKF45_TAB[4][0]) : 
+            inputs[i] += h * (i == 0 ? _RKF45_TIME(4, 5) : 
                 ( _RKF45_UNIT(5, 1) + _RKF45_UNIT(5, 2) + _RKF45_UNIT(5, 3) + _RKF45_UNIT(5, 4) + _RKF45_UNIT(5, 5)
                 - _RKF45_UNIT(4, 1) - _RKF45_UNIT(4, 2) - _RKF45_UNIT(4, 3) - _RKF45_UNIT(4, 4)));
         
@@ -321,8 +398,9 @@ DataFrame<T> _RKF45(ODESystem<T>& ode, T maxError)
         }
 
         res.addRow(result);
+        std::cout << "added result" << std::endl;
 
-        T truncErrMagnitude = (T)sqrt(
+        T truncErrMagnitude = _RKF45_SQRT(
               truncErr[0] * truncErr[0] 
             + truncErr[1] * truncErr[1] 
             + truncErr[2] * truncErr[2] 
@@ -331,16 +409,18 @@ DataFrame<T> _RKF45(ODESystem<T>& ode, T maxError)
             + truncErr[5] * truncErr[5] 
         );
 
-        h = (T)(0.9 * h * pow(maxError / truncErrMagnitude, 0.2));
+        h = (T)0.9 * h * _RKF45_POW(maxError / truncErrMagnitude, 0.2);
+        std::cout << "h: " << h << std::endl;
         row++;
         if (truncErrMagnitude <= maxError) {
             t += h;
         }
-
+        // break;
     } while (t < tBound.second);
 
     return res;
 }
+
 
 
 template <typename T>
