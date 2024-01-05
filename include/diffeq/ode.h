@@ -22,8 +22,13 @@ class ODE : public DiffEq<T>
 {
 
 public:
-    ODE(function_t<T>& func, timeBound_t<T>& bounds, T initialCondition, T timeStep) 
+    ODE(function_t<T>& func, timeBound_t<T>& bounds, iv_t<T>& initialCondition, T timeStep) 
     : DiffEq<T>(func, bounds, initialCondition, timeStep) { }
+
+    T               _eval(std::vector<T>& input);
+    T               getTimeStep();
+    timeBound_t<T>  getTimeBound();
+    iv_t<T>         getInitialCondition();
 
 };
 
@@ -39,36 +44,77 @@ class ODESystem : public DiffEqSystem<T>
 {
 
 private:
-    timeBound_t<T> _timeBound;
-    T _timeStep;
     size_t _equations;
 
 public:
     ODESystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs, timeBound_t<T>& bounds, T timeStep)
-        : DiffEqSystem<T>(iValues, funcs)
-        , _timeBound(bounds)    // must be done to avoid explicit initialization errors
+        : DiffEqSystem<T>(iValues, funcs, bounds, timeStep)
     { 
-        _timeStep = timeStep;
         _equations = funcs.size();
     };
 
-    std::vector<T> _eval(std::vector<T>& inputs); 
-    
-    size_t          getNumEquations();      
+    std::vector<T> _eval(std::vector<T>& inputs);  
+    iv_t<T>         getInitialConditions();    
     timeBound_t<T>  getTimeBound();
     T               getTimeStep();
+    size_t          getNumEquations(); 
+
 };
 
 
 
-// Forward declare the algorithms
+template <typename T>   DataFrame<T>  _EULER    (ODE<T>& ode);
+template <typename T>   DataFrame<T>  _RK4      (ODE<T>& ode);
+template <typename T>   DataFrame<T>  _RKF45    (ODE<T>& ode);
+template <typename T>   DataFrame<T>  _RKF45    (ODE<T>& ode, T maxError);
+template <typename T>   DataFrame<T>  _TSIT5    (ODE<T>& ode);
 
 template <typename T>   DataFrame<T>  _EULER    (ODESystem<T>& ode);
 template <typename T>   DataFrame<T>  _RK4      (ODESystem<T>& ode);
 template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode);
+template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode, T maxError);
 template <typename T>   DataFrame<T>  _TSIT5    (ODESystem<T>& ode);
 
-template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode, T maxError);
+template <typename T>   std::vector<T>  _EULER_i  (ODE<T>& ode);
+template <typename T>   std::vector<T>  _RK4_i    (ODE<T>& ode);
+template <typename T>   std::vector<T>  _RKF45_i  (ODE<T>& ode);
+template <typename T>   std::vector<T>  _RKF45_i  (ODE<T>& ode, T maxError);
+template <typename T>   std::vector<T>  _TSIT5_i  (ODE<T>& ode);
+
+template <typename T>   std::vector<T>  _EULER_i  (ODESystem<T>& ode);
+template <typename T>   std::vector<T>  _RK4_i    (ODESystem<T>& ode);
+template <typename T>   std::vector<T>  _RKF45_i  (ODESystem<T>& ode);
+template <typename T>   std::vector<T>  _RKF45_i  (ODESystem<T>& ode, T maxError);
+template <typename T>   std::vector<T>  _TSIT5_i  (ODESystem<T>& ode);
+
+
+
+template <typename T>
+T ODE<T>::_eval(std::vector<T>& input) 
+{
+    return this->_func(input);
+}
+
+
+template <typename T>
+timeBound_t<T> ODE<T>::getTimeBound() 
+{
+    return this->_bounds;
+}
+
+
+template <typename T>
+iv_t<T> ODE<T>::getInitialCondition()
+{
+    return this->_iCondition;
+}
+
+
+template <typename T>
+T ODE<T>::getTimeStep() 
+{
+    return this->_timeStep;
+}
 
 
 /**
@@ -76,7 +122,7 @@ template <typename T>   DataFrame<T>  _RKF45    (ODESystem<T>& ode, T maxError);
  * inputs. Useful for coupled Runge-Kutta schemes, which use common sets  
  * of inputs for every iteration.
  * 
- * @tparam T 
+ * @tparam T
  * @param inputs 
  * @return std::vector<T> 
  */
@@ -91,6 +137,13 @@ std::vector<T> ODESystem<T>::_eval(std::vector<T>& inputs)
 }
 
 
+template <typename T>
+iv_t<T> ODESystem<T>::getInitialConditions() 
+{
+    return this->_iValues;
+}
+
+
 /**
  * @brief Get the number of equations in an ODESystem object.
  * @tparam T 
@@ -99,7 +152,7 @@ std::vector<T> ODESystem<T>::_eval(std::vector<T>& inputs)
 template <typename T>
 size_t ODESystem<T>::getNumEquations() 
 {
-    return _equations;
+    return this->_equations;
 }
 
 
@@ -112,7 +165,7 @@ size_t ODESystem<T>::getNumEquations()
 template <typename T>
 timeBound_t<T> ODESystem<T>::getTimeBound()
 {
-    return _timeBound;
+    return this->_timeBound;
 }
 
 
@@ -126,9 +179,8 @@ timeBound_t<T> ODESystem<T>::getTimeBound()
 template <typename T>
 T ODESystem<T>::getTimeStep()
 {
-    return _timeStep;
+    return this->_timeStep;
 }
-
 
 
 /**
@@ -143,19 +195,13 @@ T ODESystem<T>::getTimeStep()
 template <typename T>
 DataFrame<T> solve(ODE<T>& eq, algorithm_t alg) 
 {
-
-    std::cout << alg << std::endl;
     switch (alg)
     {
-    case ALGORITHM_EULER:
-        return _EULER(eq);
-        break;
-    
-    case ALGORITHM_RK4:
-        return _RK4(eq);
+        case ALGORITHM_EULER:   return _EULER(eq);
+        case ALGORITHM_RK4:     return _RK4(eq);
+        case ALGORITHM_RKF45:   return _RKF45(eq);
 
-    default:
-        break;
+        default:                throw std::runtime_error("Invalid algorithm");
     }
 }
 
@@ -174,8 +220,35 @@ DataFrame<T> solve(ODESystem<T>& eq, algorithm_t alg)
 }
 
 
+template <typename T>
+std::vector<T> solve_i(ODE<T>& eq, algorithm_t alg) 
+{
+    switch (alg)
+    {
+        case ALGORITHM_EULER:   return _EULER_i(eq);
+        case ALGORITHM_RK4:     return _RK4_i(eq);
+        case ALGORITHM_RKF45:   return _RKF45_i(eq);
 
+        default:                throw std::runtime_error("Invalid algorithm");
+    }
 }
+
+
+template <typename T>
+std::vector<T> solve_i(ODESystem<T>& eq, algorithm_t alg)
+{
+    switch (alg)
+    {
+        case ALGORITHM_EULER:   return _EULER_i(eq);
+        case ALGORITHM_RK4:     return _RK4_i(eq);
+        case ALGORITHM_RKF45:   return _RKF45_i(eq);
+
+        default:                throw std::runtime_error("Invalid algorithm");
+    }
+}
+
+
+} // namespace DES
 
 
 #endif
