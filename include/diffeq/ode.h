@@ -47,6 +47,7 @@ private:
     size_t _equations;
 
 public:
+    ODESystem() = default;
     ODESystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs, timeBound_t<T>& bounds, T timeStep)
         : DiffEqSystem<T>(iValues, funcs, bounds, timeStep)
     { 

@@ -26,6 +26,7 @@ struct timeBound_t
 {
     T first, second;
 
+    timeBound_t() = default;
     timeBound_t(T start, T end) : first(start), second(end) { }
     timeBound_t(std::initializer_list<T> bounds) : first(bounds.begin()[0]), second(bounds.begin()[1]) { }
 };
@@ -36,6 +37,7 @@ struct iv_t
 {
     std::vector<T> vec;
 
+    iv_t()                                    = default;
     iv_t(std::vector<T> values)             : vec(values) { }
     iv_t(std::initializer_list<T> values)   : vec(values) { }
 };
@@ -85,6 +87,8 @@ protected:
     T _timeStep;
 
 public:
+    DiffEq() = default;
+
     /**
      * @brief Construct a new Diff Eq object.
      * 
@@ -114,6 +118,7 @@ protected:
     T _timeStep;
 
 public:
+    DiffEqSystem() = default;
     DiffEqSystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs, timeBound_t<T>& bounds, T timeStep) 
         : _functions(funcs)
         , _iValues(iValues)

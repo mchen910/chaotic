@@ -240,6 +240,7 @@ std::vector<T> _RK4_i(ODESystem<T>& ode)
 {
     static std::vector<T> lastRow = ode.getInitialConditions().vec;
     T h = ode.getTimeStep();
+    T m = ode.getNumEquations();
 
 #if defined(DIFFEQ_FLOAT_PRECISION)
     #define  _RK4_TIME(a, b)        RK4_TABF[b][0] - RK4_TABF[a][0]
