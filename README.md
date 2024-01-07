@@ -21,16 +21,21 @@ The precision may also be specified, by defining one of the following macros *be
 
 
 ## Solver Specifics ##
-The general process of solving a differential equation is as follows, with the example of a simple harmonic oscillator with frequency $ \omega \equiv 1 $ for simplicity, and initial conditions $x(0) \equiv 1$ and $\dot{x_0}(0) \equiv 10 $.
+The general process of solving a differential equation is as follows, with the example of a simple harmonic oscillator with frequency $``` \omega \equiv 1 `$ for simplicity, and initial conditions $`x(0) \equiv 1`$ and `$`\dot{x_0}(0) \equiv 10 `$.
 
 
 ### 1. Setting up the equations ###
 The differential equation describing the oscillator's motion is 
+
 $$ \ddot{x} + x = 0 $$
+
 , a second order ordinary differential equation which the solver cannot handle directly. Therefore, it is necessary to break up the original equation into two first order equations to interface with the solver. These are:
+
 $$ \dot{v} = -u $$
+
 $$ \dot{u} = v $$
-where the substitution $v = \dot{x}$ and $u = x$ where made. 
+
+where the substitution $`v = \dot{x}`$ and $`u = x`$ where made. 
 
 
 ### 2. Create `function_t` functors ###
@@ -52,14 +57,14 @@ int main(int argc, char** argv)
     // The initial conditions are in the order (t, u, v), so the arguments to the functions are also in this order
     iv_t<T> initialConditions = {0.0, 1.0, 10.0};   
 
-    // v' = -u
-    function_t<T> vPrime([](std::vector<T> args) {
-        return -args[1];
-    });
-
     // u' = v
     function_t<T> uPrime([](std::vector<T> args) {
         return args[2];
+    });
+
+    // v' = -u
+    function_t<T> vPrime([](std::vector<T> args) {
+        return -args[1];
     });
 
     // Time bounds
@@ -69,7 +74,7 @@ int main(int argc, char** argv)
     T dT = 0.1;
 
     // Create the ODESystem
-    ODESystem<T> system(initialConditions, {uPrime, vPrime}, bounds, dT);
+    ODESystem<T> system(initialConditions, { uPrime, vPrime }, bounds, dT);
 
     // Solve with a given algorithm
     DataFrame<T> sol = solve(system, ALGORITHM_RK4);
@@ -80,7 +85,9 @@ int main(int argc, char** argv)
 
 
 The exact solution of the differential equation above is 
+
 $$ x(t)=\cos(x)+10\sin(x) $$
+
 A comparison between the solver and the exact solution is below.
 
 | t | u | u (exact) | v | v (exact) |
