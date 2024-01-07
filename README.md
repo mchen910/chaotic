@@ -21,7 +21,7 @@ The precision may also be specified, by defining one of the following macros *be
 
 
 ## Solver Specifics ##
-The general process of solving a differential equation is as follows, with the example of a simple harmonic oscillator with frequency $``` \omega \equiv 1 `$ for simplicity, and initial conditions $`x(0) \equiv 1`$ and `$`\dot{x_0}(0) \equiv 10 `$.
+The general process of solving a differential equation is as follows, with the example of a simple harmonic oscillator with frequency $` \omega \equiv 1 `$ for simplicity, and initial conditions $`x(0) \equiv 1`$ and $`\dot{x_0}(0) \equiv 10 `$.
 
 
 ### 1. Setting up the equations ###
