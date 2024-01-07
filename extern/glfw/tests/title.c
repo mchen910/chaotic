@@ -1,7 +1,6 @@
 //========================================================================
-// GLFW 3.3 - www.glfw.org
-//------------------------------------------------------------------------
-// Copyright (c) 2010-2016 Camilla Löwy <elmindreda@glfw.org>
+// UTF-8 window title test
+// Copyright (c) Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -23,23 +22,51 @@
 //    distribution.
 //
 //========================================================================
-// As glfw_config.h.in, this file is used by CMake to produce the
-// glfw_config.h configuration header file.  If you are adding a feature
-// requiring conditional compilation, this is where to add the macro.
-//========================================================================
-// As glfw_config.h, this file defines compile-time option macros for a
-// specific platform and development environment.  If you are using the
-// GLFW CMake files, modify glfw_config.h.in instead of this file.  If you
-// are using your own build system, make this file define the appropriate
-// macros in whatever way is suitable.
+//
+// This test sets a UTF-8 window title
+//
 //========================================================================
 
-// MODIFIED_ERIN
-#ifdef _WIN32
-	#define _GLFW_WIN32
-	#define _CRT_SECURE_NO_WARNINGS
-#elif __APPLE__
-	#define _GLFW_COCOA
-#else
-	#define _GLFW_X11
-#endif
+#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
+int main(void)
+{
+    GLFWwindow* window;
+
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
+
+    window = glfwCreateWindow(400, 400, "English 日本語 русский язык 官話", NULL, NULL);
+    if (!window)
+    {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
+    glfwMakeContextCurrent(window);
+    gladLoadGL(glfwGetProcAddress);
+    glfwSwapInterval(1);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glfwSwapBuffers(window);
+        glfwWaitEvents();
+    }
+
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+}
+
