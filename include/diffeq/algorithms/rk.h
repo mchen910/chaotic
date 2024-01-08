@@ -202,14 +202,10 @@ DataFrame<T> _RK4(ODESystem<T>& ode)
 template <typename T>
 std::vector<T> _RK4_i(ODE<T>& ode) 
 {
-    // The only things that are needed to propagate through time are the last 
-    // row, which contains the time information as well
-    static std::vector<T> lastRow = ode.getInitialCondition().vec;
-
     T h = ode.getTimeStep();
 
     T k_1, k_2, k_3, k_4;
-    std::vector<T> inputs(lastRow);
+    std::vector<T> inputs(ode.lastValues);
 
     k_1 = ode._eval(inputs);
 
@@ -227,10 +223,10 @@ std::vector<T> _RK4_i(ODE<T>& ode)
 
     k_4 = ode._eval(inputs);
         
-    lastRow[0] += h;
-    lastRow[1] += h * (k_1 + 2 * k_2 + 2 * k_3 + k_4) / 6;
+    ode.lastValues[0] += h;
+    ode.lastValues[1] += h * (k_1 + 2 * k_2 + 2 * k_3 + k_4) / 6;
 
-    return std::vector<T>(lastRow);
+    return std::vector<T>(ode.lastValues);
 }
 
 
@@ -238,7 +234,6 @@ std::vector<T> _RK4_i(ODE<T>& ode)
 template <typename T>
 std::vector<T> _RK4_i(ODESystem<T>& ode) 
 {
-    static std::vector<T> lastRow = ode.getInitialConditions().vec;
     T h = ode.getTimeStep();
     T m = ode.getNumEquations();
 
@@ -258,7 +253,7 @@ std::vector<T> _RK4_i(ODESystem<T>& ode)
 
     using namespace ButcherTableau;
     std::vector<T> k_1j, k_2j, k_3j, k_4j;
-    std::vector<T> inputs(lastRow);
+    std::vector<T> inputs(ode.lastValues);
 
     k_1j = ode._eval(inputs);
 
@@ -281,17 +276,17 @@ std::vector<T> _RK4_i(ODESystem<T>& ode)
 
     k_4j = ode._eval(inputs);
     
-    lastRow[0] += h;
+    ode.lastValues[0] += h;
 
     _LOOP_TO_M(i, 1)
-        lastRow[i] += h * (
+        ode.lastValues[i] += h * (
               _RK4_UNIT(4, 1)
             + _RK4_UNIT(4, 2)
             + _RK4_UNIT(4, 3)
             + _RK4_UNIT(4, 4)
         );
 
-    return std::vector<T>(lastRow);
+    return std::vector<T>(ode.lastValues);
 }
 
 

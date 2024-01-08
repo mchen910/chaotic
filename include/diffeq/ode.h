@@ -22,8 +22,13 @@ class ODE : public DiffEq<T>
 {
 
 public:
+    std::vector<T> lastValues;
+
     ODE(function_t<T>& func, timeBound_t<T>& bounds, iv_t<T>& initialCondition, T timeStep) 
-    : DiffEq<T>(func, bounds, initialCondition, timeStep) { }
+    : DiffEq<T>(func, bounds, initialCondition, timeStep) 
+    {
+        lastValues = initialCondition.vec;
+    }
 
     T               _eval(std::vector<T>& input);
     T               getTimeStep();
@@ -47,19 +52,21 @@ private:
     size_t _equations;
 
 public:
+    std::vector<T> lastValues;
+
     ODESystem() = default;
     ODESystem(iv_t<T>& iValues, std::initializer_list<function_t<T>> funcs, timeBound_t<T>& bounds, T timeStep)
         : DiffEqSystem<T>(iValues, funcs, bounds, timeStep)
     { 
         _equations = funcs.size();
+        lastValues = iValues.vec;
     };
 
-    std::vector<T> _eval(std::vector<T>& inputs);  
+    std::vector<T>  _eval(std::vector<T>& inputs);  
     iv_t<T>         getInitialConditions();    
     timeBound_t<T>  getTimeBound();
     T               getTimeStep();
     size_t          getNumEquations(); 
-
 };
 
 
